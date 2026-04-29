@@ -7,6 +7,7 @@ A prototype for an additive consumption monitoring system designed to measure an
 - HX711 Amplifiers
 - ESP32 Microcontroller
 - Electrical connections (wiring and soldered connections)
+- Breadboards
 - Frame for scale
   
 <img width="45%" alt="image" src="https://github.com/user-attachments/assets/c4061c3e-4b8c-41fd-9f26-e8d723a80840" />
