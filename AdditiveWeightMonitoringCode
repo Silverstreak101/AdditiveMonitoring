@@ -1,0 +1,77 @@
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include "HX711.h"
+
+#define DOUT 4
+#define CLK 5
+#define DOUT2 14
+#define CLK2 27
+
+HX711 scale1, scale2;
+
+const char* ssid = "WIFI_SSID";
+const char* password = "WIFI_PASSWORD";
+
+const char* serverName = "SERVER_NAME"; 
+
+float calibrationFactor1 = 8174.8/0.171; // calibrated against known reference weight
+float calibrationFactor2 = 7823.5/0.171;
+
+void setup() {
+
+ Serial.begin(115200);
+ scale1.begin(DOUT, CLK);
+ scale2.begin(DOUT2, CLK2);
+
+ WiFi.begin(ssid, password);
+ Serial.print("Connecting to WiFi");
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("\nConnected to WiFi");
+
+//calibrating and zeroing load cells
+ scale1.set_scale(calibrationFactor1); 
+ scale1.tare();
+ scale2.set_scale(calibrationFactor2); 
+ scale2.tare();
+
+ Serial.println("Scale Ready");
+
+}
+
+void loop() {
+  
+  //taking readings and send them repeatedly with delays 
+  float weight1 = scale1.get_units(10); // average 10 readings
+  float weight2 = scale2.get_units(10);
+  
+  float weight = weight1 + weight2; //summing both load cells
+  
+  Serial.print("Weight: ");
+  Serial.println(weight);
+
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+
+    String url = String(serverName) + "?weight=" + String(weight);
+
+    http.begin(url);
+
+    int httpResponseCode = http.GET();
+
+    Serial.print("HTTP Response: ");
+    Serial.println(httpResponseCode);
+
+    http.end();
+  } 
+  else {
+    Serial.println("WiFi Disconnected"); 
+  }
+
+  delay(5000); // send every 5 seconds
+
+}
